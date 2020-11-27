@@ -1,8 +1,6 @@
-FROM python:3.9.0-alpine as build-image
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8-alpine3.10 as build-image
 
-WORKDIR '/app'
-
-RUN apk add --no-cache linux-headers g++
+RUN apk add --no-cache g++ postgresql-dev
 
 COPY ./requirements.txt ./
 
@@ -10,7 +8,7 @@ RUN pip wheel --wheel-dir=/root/wheels -r requirements.txt
 
 
 
-FROM python:3.9.0-alpine as production-image
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8-alpine3.10 as production-image
 
 WORKDIR '/app'
 
@@ -20,8 +18,6 @@ COPY --from=build-image /app/requirements.txt ./
 
 RUN pip install --no-index --find-links=/root/wheels -r requirements.txt
 
-COPY ./ ./
+RUN apk add --no-cache postgresql-dev
 
-RUN addgroup -S uwsgi && adduser -S uwsgi -G uwsgi
-
-USER uwsgi
+COPY ./app ./
